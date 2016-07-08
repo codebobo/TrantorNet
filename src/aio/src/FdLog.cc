@@ -1,5 +1,8 @@
 #include "FdLog.h"
 
+FdLog* FdLog::fd_log_ptr_ = NULL;
+std::once_flag FdLog::once_;
+
 FdLog::FdLog():current_log_level_(ERROR)
 {
 	fd_loop_ptr_ = std::make_shared<FdLoop>(10, 10);
@@ -12,7 +15,7 @@ FdLog::FdLog():current_log_level_(ERROR)
 		}
 		else
 		{
-			fd_operator_ptr_->setFd(0);
+			fd_operator_ptr_->setFd(STDOUT_FILENO);
 		}
 	}
 	else

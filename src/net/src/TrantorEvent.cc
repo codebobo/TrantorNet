@@ -1,7 +1,7 @@
 #include "TrantorEvent.h"
 #include <sys/eventfd.h>
-#include "muduo/base/Logging.h"
 #include "TrantorLoop.h"
+#include "unistd.h"
 
 namespace trantor
 {
@@ -19,13 +19,13 @@ namespace trantor
 			}
 			else
 			{
-				LOG_FATAL<<"make share ptr failed";
+				//LOG_FATAL<<"make share ptr failed";
 				abort();
 			}
 		}
 		else
 		{
-			LOG_FATAL<<"eventfd create failed";
+			//LOG_FATAL<<"eventfd create failed";
 		}
 	}
 
@@ -34,7 +34,7 @@ namespace trantor
 		uint64_t evtfd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
 		if (evtfd < 0)
 		{
-			LOG_SYSERR << "Failed in eventfd";
+			//LOG_SYSERR << "Failed in eventfd";
 			abort();
 		}
 		return evtfd;
@@ -46,7 +46,7 @@ namespace trantor
 		uint64_t n = write(eventfd_, &one, sizeof one);
 		if (n != sizeof one)
 		{
-			LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
+			//LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
 		}
 	}
 
@@ -56,7 +56,7 @@ namespace trantor
 		uint64_t n = read(eventfd_, &one, sizeof one);
 		if (n != sizeof one)
 		{
-			LOG_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
+			//LOG_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
 		}
 	}
 }

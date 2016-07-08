@@ -2,17 +2,16 @@
 #define FD_OPERATOR_MANAGER_H_
 
 #include <mutex>
-#include "TrantorSingleton.h"
 #include "FdOperator.h"
 
 class FdOperatorManager
 {
 public:
-	friend class TrantorSingleton<FdOperatorManager>;
 
 	static FdOperatorManager& instance()
 	{
-		return TrantorSingleton<FdOperatorManager>::Instance();
+		std::call_once(once_, &FdOperatorManager::init);
+		return *fd_operator_manager_ptr_;
 	}
 	void insertWriteFdop(const std::string& file_path, std::shared_ptr<FdOperator> fdop_ptr);
 
@@ -45,6 +44,15 @@ private:
 	std::mutex mtx_;
 	FDMAP readFdopMap;
 	FDMAP writeFdopMap;
+	static std::once_flag once_;
+	static FdOperatorManager* fd_operator_manager_ptr_;
+	static void init()
+	{
+		if(!fd_operator_manager_ptr_)
+		{
+			fd_operator_manager_ptr_ = new FdOperatorManager;
+		}
+	}
 
 	explicit FdOperatorManager() = default;
 };

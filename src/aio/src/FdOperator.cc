@@ -148,7 +148,10 @@ void FdOperator::writeFd (const std::string& data, std::function<void(bool)> fil
 			 {
 				 //this->outputBuffer_.ensureWritableBytes(data.length());
 				 this->output_buffer_.writeBuffer(data);
-				 fileWriteFinishCb(true);
+				 if(fileWriteFinishCb)
+				 {
+					 fileWriteFinishCb(true);
+				 }
 			 }
 			 else
 			 {
@@ -163,7 +166,10 @@ void FdOperator::writeFd (const std::string& data, std::function<void(bool)> fil
 		}
 		 else
 		 {
-			 fileWriteFinishCb(false);
+			 if(fileWriteFinishCb)
+			 {
+				 fileWriteFinishCb(false);
+			 }
 		 }
 	};
 	if(registered_to_poll_)

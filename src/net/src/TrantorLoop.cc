@@ -1,6 +1,5 @@
 #include "TrantorLoop.h"
 #include <iostream>
-#include "muduo/base/Logging.h"
 
 namespace trantor
 {
@@ -119,7 +118,7 @@ namespace trantor
 		}
 		else
 		{
-			LOG_ERROR<<"pointer null";
+			//LOG_ERROR<<"pointer null";
 		}
 	}
 
@@ -138,7 +137,7 @@ namespace trantor
 		}
 		else
 		{
-			LOG_ERROR<<"pointer null";
+			//LOG_ERROR<<"pointer null";
 		}
 	}
 }

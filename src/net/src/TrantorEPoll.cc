@@ -1,6 +1,5 @@
 #include "TrantorEPoll.h"
 #include <sys/eventfd.h>
-#include "muduo/base/Logging.h"
 
 TrantorEPoll::TrantorEPoll(uint32_t max_fd_num)
 :max_fd_num_(max_fd_num),
@@ -9,7 +8,7 @@ events_vec(100)
 	epfd_ = epoll_create(max_fd_num_);
 	if(epfd_ < 0)
 	{
-		LOG_ERROR<<"epfd create error";
+		//LOG_ERROR<<"epfd create error";
 		abort();
 	}
 }

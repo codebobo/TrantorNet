@@ -1,5 +1,4 @@
 #include "TrantorPipe.h"
-#include "muduo/base/Logging.h"
 
 namespace trantor
 {
@@ -27,7 +26,7 @@ namespace trantor
 		}
 		else
 		{
-			LOG_WARN<<"undefine read cb";
+			//LOG_WARN<<"undefine read cb";
 		}
 	}
 
@@ -39,7 +38,7 @@ namespace trantor
 		}
 		else
 		{
-			LOG_WARN<<"undefine write cb";
+			//LOG_WARN<<"undefine write cb";
 		}
 	}
 

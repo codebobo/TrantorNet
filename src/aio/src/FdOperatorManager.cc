@@ -1,5 +1,8 @@
 #include "FdOperatorManager.h"
 
+std::once_flag FdOperatorManager::once_;
+FdOperatorManager* FdOperatorManager::fd_operator_manager_ptr_ = NULL;
+
 void FdOperatorManager::insertWriteFdop(const std::string& file_path, std::shared_ptr<FdOperator> fdop_ptr)
 {
 	std::lock_guard<std::mutex> lock(mtx_);

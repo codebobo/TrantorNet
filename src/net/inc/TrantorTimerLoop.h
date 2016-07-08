@@ -2,17 +2,16 @@
 #define TRANTOR_TIMER_LOOP_H_
 
 #include "TrantorLoop.h"
-#include "TrantorSingleton.h"
 
 namespace trantor
 {
 	class TrantorTimerLoop
 	{
-		friend class TrantorSingleton<TrantorTimerLoop>;
 	public:
 		static TrantorTimerLoop& Instance()
 		{
-			return TrantorSingleton<TrantorTimerLoop>::Instance();
+			std::call_once(once_, &TrantorTimerLoop::init);
+			return *timer_loop_ptr_;
 		}
 		void runAt(const TrantorTimestamp& time, const TimerCallback& cb)
 		{
@@ -27,6 +26,17 @@ namespace trantor
 			loop_.runEvery(interval, cb);
 		}
 	private:
+
+		static std::once_flag once_;
+		static TrantorTimerLoop* timer_loop_ptr_;
+		static void init()
+		{
+			if(!timer_loop_ptr_)
+			{
+				timer_loop_ptr_ = new TrantorTimerLoop;
+			}
+		}
+
 		explicit TrantorTimerLoop()
 		:loop_(2)
 		{

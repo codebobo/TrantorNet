@@ -1,8 +1,10 @@
 #include "TrantorTimer.h"
 #include <sys/timerfd.h>
 #include <vector>
-#include "muduo/base/Logging.h"
 #include "TrantorLoop.h"
+#include "assert.h"
+#include "unistd.h"
+#include "string.h"
 
 namespace trantor
 {
@@ -23,13 +25,13 @@ namespace trantor
 			}
 			else
 			{
-				LOG_FATAL<<"make share ptr failed";
+				//LOG_FATAL<<"make share ptr failed";
 				abort();
 			}
 		}
 		else
 		{
-			LOG_FATAL<<"timerfd create failed";
+			//LOG_FATAL<<"timerfd create failed";
 			abort();
 		}
 	}
@@ -41,7 +43,7 @@ namespace trantor
 		uint64_t n = read(timerfd_, &one, sizeof one);
 		if (n != sizeof one)
 		{
-			LOG_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
+			//LOG_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
 		}
 
 		runTimerCb();
@@ -73,7 +75,7 @@ namespace trantor
 		}
 		else
 		{
-			LOG_ERROR<<"loop null";
+			//LOG_ERROR<<"loop null";
 		}
 	}
 	void TrantorTimer::runAfter(const double interval, const TimerCallback& cb)

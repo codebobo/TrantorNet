@@ -9,13 +9,13 @@ std::string StringTraits(T content)
 }
 
 template <>
-std::string StringTraits(std::string content)
+inline std::string StringTraits(std::string content)
 {
 	return content;
 }
 
 template <>
-std::string StringTraits(bool content)
+inline std::string StringTraits(bool content)
 {
 	if(content)
 	{
