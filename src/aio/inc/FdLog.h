@@ -11,6 +11,8 @@
 
 namespace trantor
 {
+#define MAX_SIZE_PER_LOG_FILE 1024 * 1024
+
 #define log_debug FdLog(DEBUG, __FILE__, __LINE__)
 #define log_info FdLog(INFO, __FILE__, __LINE__)
 #define log_warn FdLog(WARN, __FILE__, __LINE__)
@@ -30,14 +32,15 @@ class FdLog
 {
 public:
 	FdLog(const LOG_LEVEL level, const std::string& file_name, const int line_num);
-	void log(const std::string& log_content);
+	~FdLog();
+	void log();
 	void generateLogSuffix(const std::string& file_name, const int line_num);
 	void generateLogPrefix(const LOG_LEVEL level);
 
 	template<class T>
 	FdLog& operator<<(T content)
 	{
-		log(StringTraits(content));
+		log_content_ += StringTraits(content);
 		return *this;
 	}
 
@@ -49,6 +52,7 @@ private:
 
 	std::string log_suffix_;
 	std::string log_prefix_;
+	std::string log_content_;
 	LOG_LEVEL current_log_level_;
 	
 	static void init();
@@ -57,6 +61,8 @@ private:
 
 void setAsyncLogLevel(LOG_LEVEL level);
 void setAsyncLogPath(const std::string& path);
+void setAsyncLogFileBasename(const std::string& basename);
+std::string generateLogFileName();
 }
 
 

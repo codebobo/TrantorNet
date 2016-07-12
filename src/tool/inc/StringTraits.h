@@ -3,13 +3,19 @@
 #include <string>
 #include <sstream>
 
+extern __thread std::stringstream* sstr;
+
 template <class T>
 std::string StringTraits(T content)
 {
-	std::stringstream sstr;
-	sstr<<content;
+	if(!sstr)
+	{
+		sstr = new std::stringstream;
+	}
+	(*sstr).clear();
+	(*sstr)<<content;
 	std::string ret;
-	sstr>>ret;
+	(*sstr)>>ret;
 	return ret;
 }
 

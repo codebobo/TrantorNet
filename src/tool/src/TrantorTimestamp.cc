@@ -2,21 +2,25 @@
 
 namespace trantor
 {
+	__thread std::stringstream* timestamp_sstr = NULL;
 	string TrantorTimestamp::transToString() const
 	{
 		struct tm tm_time;
 		int64_t seconds = time_since_epoch_usec_ / 1000000;
-		gmtime_r(&seconds, &tm_time);
+		localtime_r(&seconds, &tm_time);
 
 		string date;
 		string time;
-		stringstream sstr;
-		sstr<<(tm_time.tm_year + 1900)<<"-"<<(tm_time.tm_mon + 1)<<"-"<<tm_time.tm_mday<<" ";
-		sstr>>date;
+		if(!timestamp_sstr)
+		{
+			timestamp_sstr = new std::stringstream;
+		}
+		(*timestamp_sstr)<<(tm_time.tm_year + 1900)<<"-"<<(tm_time.tm_mon + 1)<<"-"<<tm_time.tm_mday<<" ";
+		(*timestamp_sstr)>>date;
 
-		sstr<<tm_time.tm_hour<<":"<<tm_time.tm_min<<":"<<tm_time.tm_sec<<".";
-		sstr<<time_since_epoch_usec_ - seconds * 1000000;
-		sstr>>time;
+		(*timestamp_sstr)<<tm_time.tm_hour<<":"<<tm_time.tm_min<<":"<<tm_time.tm_sec<<".";
+		(*timestamp_sstr)<<time_since_epoch_usec_ - seconds * 1000000;
+		(*timestamp_sstr)>>time;
 
 		return date + " " + time;
 	}

@@ -5,7 +5,7 @@ using namespace trantor;
 
 void test()
 {
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10000; i++)
 	{
 		log_debug<<"this is debug test";
 		log_info<<"this is info test";
@@ -17,7 +17,9 @@ void test()
 
 int main()
 {
-	setAsyncLogLevel(WARN);
+	setAsyncLogFileBasename("trantornet");
+	setAsyncLogPath("/app/boboWorkdir/TrantorNet/TrantorNet/");
+	setAsyncLogLevel(DEBUG);
 	std::thread thread1(test);
 	std::thread thread2(test);
 	std::thread thread3(test);
@@ -28,5 +30,5 @@ int main()
 	thread3.join();
 	thread4.join();
 	thread5.join();
-	sleep(1);
+	//sleep(5);
 }

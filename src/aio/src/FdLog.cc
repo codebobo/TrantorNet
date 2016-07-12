@@ -2,7 +2,9 @@
 
 namespace trantor
 {
-std::string async_log_file_path_ = "";
+uint64_t current_log_file_size = 0;
+std::string async_log_file_dir = "";
+std::string async_log_file_basename = "";
 LOG_LEVEL global_log_level = DEBUG;
 
 std::once_flag FdLog::once_;
@@ -18,6 +20,12 @@ FdLog::FdLog(const LOG_LEVEL level, const std::string& file_name, const int line
 	generateLogSuffix(file_name, line_num);
 }
 
+FdLog::~FdLog()
+{
+	log_content_ += log_suffix_;
+	log();
+}
+
 void FdLog::init()
 {
 	FdLog::fd_loop_ptr_ = std::make_shared<FdLoop>(10, 10);
@@ -30,13 +38,13 @@ void FdLog::init()
 		}
 		else
 		{
-			if(async_log_file_path_ == "")
+			if(async_log_file_dir == "")
 			{
 				FdLog::fd_operator_ptr_->setFd(STDOUT_FILENO);
 			}
 			else
 			{
-				if(!FdLog::fd_operator_ptr_->openFd(async_log_file_path_, WRITE_APPEND))
+				if(!FdLog::fd_operator_ptr_->openFd(async_log_file_dir + generateLogFileName(), WRITE_APPEND))
 				{
 					abort();
 				}
@@ -51,12 +59,45 @@ void FdLog::init()
 	}
 }
 
-void FdLog::log(const std::string& log_content)
+void FdLog::log()
 {
 	if(current_log_level_ <= global_log_level)
 	{
 		std::lock_guard<std::mutex> lck(mtx_);
-		fd_operator_ptr_->writeFd(log_prefix_ + log_content + log_suffix_);
+		if(async_log_file_dir == "")
+		{
+			//std output
+			fd_operator_ptr_->writeFd(log_content_);
+		}
+		else
+		{
+			current_log_file_size += log_content_.length();
+			if(current_log_file_size <= MAX_SIZE_PER_LOG_FILE)
+			{
+				//output to original log file
+				fd_operator_ptr_->writeFd(log_content_);
+			}
+			else
+			{
+				//build new log file
+				fd_operator_ptr_->closeFd();
+				fd_operator_ptr_ = std::make_shared<FdOperator>(FdLog::fd_loop_ptr_);
+				if(!FdLog::fd_operator_ptr_)
+				{
+					abort();
+				}
+				else
+				{
+					if(!FdLog::fd_operator_ptr_->openFd(async_log_file_dir + generateLogFileName(), WRITE_APPEND))
+					{
+						abort();
+					}
+				}
+				FdLog::fd_operator_ptr_->registerFd();
+				fd_operator_ptr_->writeFd(log_content_);
+				current_log_file_size = log_content_.length();
+			}
+		}
 	}
 }
 
@@ -85,6 +126,8 @@ void FdLog::generateLogPrefix(const LOG_LEVEL level)
 		log_prefix_ += "FATAL -- ";
 		break;
 	}
+
+	log_content_ = log_prefix_;
 }
 
 void setAsyncLogLevel(LOG_LEVEL level)
@@ -92,9 +135,32 @@ void setAsyncLogLevel(LOG_LEVEL level)
 	global_log_level = level;
 }
 
-void setAsyncLogPath(const std::string& path)
+void setAsyncLogPath(const std::string& dir)
 {
-	async_log_file_path_ = path;
+	if(dir != "" && dir.back() != '/')
+	{
+		dir.push_back('/');
+	}
+	async_log_file_dir = dir;
+}
+
+void setAsyncLogFileBasename(const std::string& basename)
+{
+	async_log_file_basename = basename;
+}
+
+std::string generateLogFileName()
+{
+	std::string pid_str = StringTraits(getpid());
+	std::string timestamp = TrantorTimestamp::now().transToString();
+	if(async_log_file_basename != "")
+	{
+		return async_log_file_basename + "-" + pid_str + "-" + timestamp + ".log";
+	}
+	else
+	{
+		return  pid_str + "-" + timestamp + ".log";
+	}
 }
 }
 
