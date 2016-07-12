@@ -2,37 +2,53 @@
 
 namespace trantor
 {
+std::string async_log_file_path_ = "";
 LOG_LEVEL global_log_level = DEBUG;
 
-FdLog* FdLog::fd_log_ptr_ = NULL;
 std::once_flag FdLog::once_;
+std::shared_ptr<FdLoop>  FdLog::fd_loop_ptr_ = NULL;
+std::shared_ptr<FdOperator>  FdLog::fd_operator_ptr_ = NULL;
+std::mutex  FdLog::mtx_;
 
-FdLog::FdLog():current_log_level_(ERROR)
+FdLog::FdLog(const LOG_LEVEL level, const std::string& file_name, const int line_num)
+:current_log_level_(level)
 {
-	fd_loop_ptr_ = std::make_shared<FdLoop>(10, 10);
-	if(fd_loop_ptr_)
+	std::call_once(FdLog::once_, &FdLog::init);
+	generateLogPrefix(level);
+	generateLogSuffix(file_name, line_num);
+}
+
+void FdLog::init()
+{
+	FdLog::fd_loop_ptr_ = std::make_shared<FdLoop>(10, 10);
+	if(FdLog::fd_loop_ptr_)
 	{
-		fd_operator_ptr_ = std::make_shared<FdOperator>(fd_loop_ptr_);
-		if(!fd_operator_ptr_)
+		FdLog::fd_operator_ptr_ = std::make_shared<FdOperator>(FdLog::fd_loop_ptr_);
+		if(!FdLog::fd_operator_ptr_)
 		{
 			abort();
 		}
 		else
 		{
-			fd_operator_ptr_->setFd(STDOUT_FILENO);
-			fd_operator_ptr_->registerFd();
-			fd_loop_ptr_->start();
+			if(async_log_file_path_ == "")
+			{
+				FdLog::fd_operator_ptr_->setFd(STDOUT_FILENO);
+			}
+			else
+			{
+				if(!FdLog::fd_operator_ptr_->openFd(async_log_file_path_, WRITE_APPEND))
+				{
+					abort();
+				}
+			}
+			FdLog::fd_operator_ptr_->registerFd();
+			FdLog::fd_loop_ptr_->start();
 		}
 	}
 	else
 	{
 		abort();
 	}
-}
-
-bool FdLog::setAsyncLogFilePath(const std::string& file_path)
-{
-	return fd_operator_ptr_->openFd(file_path, WRITE_APPEND);
 }
 
 void FdLog::log(const std::string& log_content)
@@ -76,20 +92,10 @@ void setAsyncLogLevel(LOG_LEVEL level)
 	global_log_level = level;
 }
 
-bool setAsyncLogPath(const std::string& path)
+void setAsyncLogPath(const std::string& path)
 {
-	return FdLog::instance().setAsyncLogFilePath(path);
+	async_log_file_path_ = path;
 }
-
-FdLog& log(const LOG_LEVEL level, const std::string& file_name, const int line_num)
-{
-	FdLog::instance().generateLogPrefix(level);
-	FdLog::instance().generateLogSuffix(file_name, line_num);
-	FdLog::instance().setLogLevel(level);
-
-	return FdLog::instance();
-}
-
 }
 
 
