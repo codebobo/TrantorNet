@@ -1,4 +1,6 @@
 #include <arpa/inet.h>
+#include <errno.h>
+#include <string.h>
 #include <fcntl.h>
 #include "SocketOperator.h"
 #include "FdLog.h"
@@ -45,8 +47,7 @@ int SocketOperator::accept(const int fd)
 	int sockfd;
 
 	struct sockaddr_in client;
-	socklen_t len;
-
+	socklen_t len = sizeof(sockaddr_in);
 	sockfd = ::accept(fd, (struct sockaddr*)&client, &len );
 	if(sockfd >= 0)
 	{
@@ -55,7 +56,7 @@ int SocketOperator::accept(const int fd)
 	}
 	else
 	{
-		log_error<<"accept failed!";
+		log_error<<"accept failed!"<<sockfd<<"  "<<fd<<" "<<errno;
 	}
 	return sockfd;
 }
