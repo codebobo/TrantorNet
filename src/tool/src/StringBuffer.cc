@@ -1,102 +1,93 @@
-#include "StringBuffer.h"
-#include <muduo/base/Logging.h>
 #include <string.h>
+#include "StringBuffer.h"
 
 namespace trantor
 {
-	StringBuffer::StringBuffer(const uint64_t high_water_level_threahold):
-	high_water_level_threahold_(high_water_level_threahold),
-	string_buffer_(),
-	read_index_(0)
-	{
-	}
+const char StringBuffer::kCRLF[] = "\r\n";
 
-	int StringBuffer::writeBuffer(const std::string& data)
-	{
-		if(!highWaterLevelFlag())
-		{
-			if(getWritableBytes() < data.length())
-			{
-				string_buffer_.append(data);
-			}
-			else
-			{
-				if(getBackwardBytes() < data.length())
-				{
-					eraseBuffer(read_index_);
-				}
-				string_buffer_.append(data);
-			}
-			return 0;
-		}
-		return -1;
-	}
+StringBuffer::StringBuffer():
+read_index_(0),
+write_index_(0)
+{
+}
 
-	int StringBuffer::writeBuffer(const char* addr, const size_t size)
+int StringBuffer::writeBuffer(const std::string& data)
+{
+	writeBuffer(data.c_str(), data.length());
+}
+
+void StringBuffer::resizeBuffer(const long size)
+{
+	buffer_.resize(size);
+}
+
+
+void StringBuffer::adjustBuffer()
+{
+	long len = getReadableBytes();
+	memcpy(static_cast<char*>(&(*buffer_.begin())), peek(), len);
+	read_index_ = 0;
+	write_index_ = len;
+}
+
+int StringBuffer::writeBuffer(const char* addr, const size_t size)
+{
+	//LOG4CPLUS_DEBUG(_logger, "write buffer "<<getBackwardWritableBytes()<<" "<<getForwardWritableBytes()<<" "<<buffer_.capacity());
+	if(getBackwardWritableBytes() >= size)
 	{
-		if(addr && !highWaterLevelFlag())
-		{
-			if(getWritableBytes() < size)
-			{
-				string_buffer_.append(addr, size);
-			}
-			else
-			{
-				if(getBackwardBytes() < size)
-				{
-					eraseBuffer(read_index_);
-				}
-				string_buffer_.append(addr, size);
-			}
-			return 0;
-		}
-		return -1;
+		//LOG4CPLUS_DEBUG(_logger, "write buffer "<<addr);
+		memcpy(const_cast<char*>(end()), addr, size);
 	}
-	size_t StringBuffer::readBuffer(const char* addr, const size_t size)
+	else if(getBackwardWritableBytes() + getForwardWritableBytes() >= size)
 	{
-		if(addr)
-		{
-			uint64_t readableBytes = getReadableBytes();
-			if(size >= readableBytes)
-			{
-				memcpy(const_cast<char*>(addr), getReadAddr(), readableBytes);
-				read_index_ += readableBytes;
-				return readableBytes;
-			}
-			else
-			{
-				memcpy(const_cast<char*>(addr), getReadAddr(), size);
-				read_index_ += readableBytes;
-				return size;
-			}
-		}
-		return -1;
+		//LOG4CPLUS_DEBUG(_logger, "write buffer "<<addr);
+		adjustBuffer();
+		memcpy(const_cast<char*>(end()), addr, size);
 	}
-	size_t StringBuffer::readBuffer(std::string& data, const size_t size)
+	else
+	{
+		//LOG4CPLUS_DEBUG(_logger, "write buffer "<<addr);
+		resizeBuffer((buffer_.capacity() + size - getBackwardWritableBytes()) * 2);
+		memcpy(const_cast<char*>(end()), addr, size);
+	}
+	write_index_ += size;
+	//LOG4CPLUS_DEBUG(_logger, "write buffer "<<write_index_);
+}
+size_t StringBuffer::readBuffer(const char* addr, const size_t size)
+{
+	if(addr)
 	{
 		uint64_t readableBytes = getReadableBytes();
-		
 		if(size >= readableBytes)
 		{
-			data.append(getReadAddr(), readableBytes);
+			memcpy(const_cast<char*>(addr), getReadAddr(), readableBytes);
 			read_index_ += readableBytes;
 			return readableBytes;
 		}
 		else
 		{
-			data.append(getReadAddr(), size);
-			read_index_ += size;
+			memcpy(const_cast<char*>(addr), getReadAddr(), size);
+			read_index_ += readableBytes;
 			return size;
 		}
 	}
-	int StringBuffer::eraseBuffer(const size_t size)
+	return -1;
+}
+size_t StringBuffer::readBuffer(std::string& data, const size_t size)
+{
+	uint64_t readableBytes = getReadableBytes();
+	
+	if(size >= readableBytes)
 	{
-		if(size <= string_buffer_.length())
-		{
-			string_buffer_.erase(string_buffer_.begin(), string_buffer_.begin() + size);
-			read_index_  -= size;
-			return 0;
-		}
-		return -1;
+		data.append(getReadAddr(), readableBytes);
+		read_index_ += readableBytes;
+		return readableBytes;
 	}
+	else
+	{
+		data.append(getReadAddr(), size);
+		read_index_ += size;
+		return size;
+	}
+}
 }

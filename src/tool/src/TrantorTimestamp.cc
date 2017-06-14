@@ -1,4 +1,5 @@
 #include "TrantorTimestamp.h"
+#include <iostream>
 
 namespace trantor
 {
@@ -15,13 +16,12 @@ namespace trantor
 		{
 			timestamp_sstr = new std::stringstream;
 		}
+		timestamp_sstr->clear();
 		(*timestamp_sstr)<<(tm_time.tm_year + 1900)<<"-"<<(tm_time.tm_mon + 1)<<"-"<<tm_time.tm_mday<<" ";
 		(*timestamp_sstr)>>date;
-
 		(*timestamp_sstr)<<tm_time.tm_hour<<":"<<tm_time.tm_min<<":"<<tm_time.tm_sec<<".";
 		(*timestamp_sstr)<<time_since_epoch_usec_ - seconds * 1000000;
 		(*timestamp_sstr)>>time;
-
 		return date + " " + time;
 	}
 	timeval TrantorTimestamp::getTimeval() const

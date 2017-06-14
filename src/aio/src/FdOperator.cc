@@ -12,8 +12,6 @@ FdOperator::FdOperator(std::shared_ptr<FdLoop> loop_ptr):
 events_(0), 
 revents_(0),
 loop_(loop_ptr), 
-input_buffer_(BUFFER_HIGH_WATER_LEVEL_THRESHOLD),
-output_buffer_(BUFFER_HIGH_WATER_LEVEL_THRESHOLD),
 file_read_eof_(false),
 file_write_end_(false),
 registered_to_poll_(false),
@@ -117,7 +115,7 @@ void FdOperator::readFd (uint64_t length, std::function<void(std::string&, bool)
 				this->file_read_length_ = length;
 				this->file_read_finish_cb_ = fileReadFinishCb;
 			}
-			if(input_buffer_.highWaterLevelFlag())
+			if(input_buffer_.getReadableBytes() >= BUFFER_HIGH_WATER_LEVEL_THRESHOLD)
 			{
 				enableReading();
 			}
@@ -144,7 +142,7 @@ void FdOperator::writeFd (const std::string& data, std::function<void(bool)> fil
 	 {
 		 if(this)
 		 {
-			 if(!this->output_buffer_.highWaterLevelFlag())
+			 if(this->output_buffer_.getReadableBytes() < BUFFER_HIGH_WATER_LEVEL_THRESHOLD)
 			 {
 				 //this->outputBuffer_.ensureWritableBytes(data.length());
 				 this->output_buffer_.writeBuffer(data);
@@ -239,7 +237,7 @@ void FdOperator::handleEvents()
 
 void FdOperator::handleRead()
 {
-	if(!input_buffer_.highWaterLevelFlag())
+	if(input_buffer_.getReadableBytes() < BUFFER_HIGH_WATER_LEVEL_THRESHOLD)
 	{
 		char tmpBuffer[BUFFER_HIGH_WATER_LEVEL_THRESHOLD];
 		uint64_t n = read(fd_, tmpBuffer, BUFFER_HIGH_WATER_LEVEL_THRESHOLD);
@@ -267,7 +265,7 @@ void FdOperator::handleRead()
 		else
 		{
 			input_buffer_.writeBuffer(tmpBuffer, n);
-			if(input_buffer_.highWaterLevelFlag())
+			if(input_buffer_.getReadableBytes() >= BUFFER_HIGH_WATER_LEVEL_THRESHOLD)
 			{
 				disableReading();
 			}

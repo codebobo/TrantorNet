@@ -135,7 +135,8 @@ void setAsyncLogLevel(LOG_LEVEL level)
 	global_log_level = level;
 }
 
-void setAsyncLogPath(const std::string& dir)
+//set log file dir, if not set, using stdout. if set, ensure dir exist.
+void setAsyncLogPath(std::string& dir)
 {
 	if(dir != "" && dir.back() != '/')
 	{

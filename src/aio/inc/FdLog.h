@@ -60,7 +60,7 @@ private:
 };
 
 void setAsyncLogLevel(LOG_LEVEL level);
-void setAsyncLogPath(const std::string& path);
+void setAsyncLogPath(std::string& path);
 void setAsyncLogFileBasename(const std::string& basename);
 std::string generateLogFileName();
 }
