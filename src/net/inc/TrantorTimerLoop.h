@@ -40,7 +40,7 @@ namespace trantor
 		explicit TrantorTimerLoop()
 		:loop_(2)
 		{
-			loop_.start();
+			loop_.loop();
 		}
 		TrantorLoop loop_;
 	};

@@ -21,6 +21,8 @@ namespace trantor
 		void setWriteCb(const function <void()>& write_cb);
 		void enableRead();
 		void enableWrite();
+		void disableRead();
+		void disableWrite();
 		uint32_t getFd() const {return fd_;}
 		uint32_t getEvent() const {return register_event_;}
 

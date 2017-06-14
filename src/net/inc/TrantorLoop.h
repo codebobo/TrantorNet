@@ -8,26 +8,25 @@
 #include "TrantorPipe.h"
 #include "TrantorEvent.h"
 #include "TrantorTimer.h"
+#include <limits.h>
 
 namespace trantor
 {
 	class TrantorLoop
 	{
 	public:
-		explicit TrantorLoop(uint64_t max_fd_num);
+		explicit TrantorLoop(uint64_t max_fd_num = INT_MAX);
 		~TrantorLoop();
 		bool isInLoopThread() const 
 		{ 
 			return loop_thread_id_ == std::this_thread::get_id(); 
 		}
-		void start()
-		{
-			loop_thread_ = std::thread(&TrantorLoop::loopThread, this);
-		}
+		void loop();
 
 		void runInLoop(std::function<void()> func);
 		void registerPipe(shared_ptr<TrantorPipe> pipe_ptr);
 		void removePipe(shared_ptr<TrantorPipe> pipe_ptr);
+		void updatePipe(shared_ptr<TrantorPipe> pipe_ptr);
 
 		void runAt(const TrantorTimestamp& time, const TimerCallback& cb)
 		{
@@ -49,7 +48,7 @@ namespace trantor
 
 		std::vector<std::function<void ()> > loop_funcs_list_;
 		std::mutex mtx_;
-		std::thread loop_thread_;
+		//std::thread loop_thread_;
 		bool need_wakeup_;
 		std::thread::id loop_thread_id_;
 		std::atomic<bool> loop_alive_;
@@ -58,9 +57,9 @@ namespace trantor
 		void runLoopFuncs();
 		void queueInLoop(std::function<void()> func);
 		void wakeup();
-		void loopThread();
 		void registerPipeInLoop(shared_ptr<TrantorPipe> pipe_ptr);
 		void removePipeInLoop(shared_ptr<TrantorPipe> pipe_ptr);
+		void updatePipeInLoop(shared_ptr<TrantorPipe> pipe_ptr);
 		void handleEvents(map<uint32_t, uint32_t>* event_map);
 	};
 }

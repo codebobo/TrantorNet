@@ -1,15 +1,14 @@
 #pragma once
 #include <assert.h>
 #include <typeinfo>
-namespace trantor
-{
+
 	class BaseHolder
 	{
 	public:
 		virtual ~BaseHolder() {}
 	public:
 		virtual BaseHolder* copy() = 0; 
-		virtual const type_info& getType() = 0;
+		virtual const std::type_info& getType() = 0;
 	};
 
 	template <class T>
@@ -23,7 +22,7 @@ namespace trantor
 		{
 			return new Holder<T>(holder_);
 		}
-		virtual const type_info& getType()
+		virtual const std::type_info& getType()
 		{
 			return typeid(holder_);
 		}
@@ -31,7 +30,7 @@ namespace trantor
 		{
 			return holder_;
 		}
-	private:
+	public:
 		T holder_;
 	};
 
@@ -39,10 +38,13 @@ namespace trantor
 	{
 		template <class T>
 		friend T trantorAnyCast(const TrantorAny& p);
+
+		template<class T>
+		friend T * trantorAnyCast(TrantorAny * p);
 	public:
-		explicit TrantorAny(){}
+		explicit TrantorAny():base_holder_(NULL){}
 		template <class T>
-		TrantorAny(const T& p) :base_holder_(new Holder<T>(p)) { assert(base_holder_ != nullptr); }
+		TrantorAny(const T& p) :base_holder_(new Holder<T>(p)) { assert(base_holder_ != nullptr);}
 		explicit TrantorAny(const TrantorAny& p)
 		{
 			if (p.base_holder_)
@@ -57,19 +59,40 @@ namespace trantor
 		}
 
 		template <class T>
-		inline void operator= (T p)
+		inline TrantorAny& operator= (const T& p)
 		{
 			base_holder_ = new Holder<T>(p);
 			assert(base_holder_ != nullptr);
+			return *this;
 		}
 
-		~TrantorAny() { delete base_holder_; }
+		inline TrantorAny& operator= (const TrantorAny& p)
+		{
+			if (p.base_holder_)
+			{
+				base_holder_ = p.base_holder_->copy();
+				assert(base_holder_ != nullptr);
+			}
+			else
+			{
+				base_holder_ = nullptr;
+			}
+			return *this;
+		}
+
+		~TrantorAny() 
+		{ 
+			if(base_holder_ != NULL)
+			{
+				delete base_holder_;
+			}
+		}
 		BaseHolder* getBaseHolder() const
 		{
 			return base_holder_;
 		}
 
-		const type_info& typeId() const
+		const std::type_info& typeId() const
 		{
 			return base_holder_->getType();
 		}
@@ -85,7 +108,12 @@ namespace trantor
 		{
 			return (dynamic_cast<Holder<T>* >(p.base_holder_))->getValue();
 		}
-		return NULL;
 	}
-}
+
+	template<class T>
+	T * trantorAnyCast(TrantorAny * p)
+	{
+		return	(p && p->typeId() == typeid(T)) ? &((static_cast<Holder<T>*>(p->base_holder_))->holder_) : NULL; // 这儿有个向下类型转换
+	}
+
 

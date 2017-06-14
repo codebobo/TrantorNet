@@ -1,12 +1,11 @@
 #include "TrantorLoop.h"
-#include <iostream>
+#include "FdLog.h"
 
 namespace trantor
 {
 	TrantorLoop::TrantorLoop(uint64_t max_fd_num)
 	:epoll_(max_fd_num),
 	need_wakeup_(false),
-	loop_thread_(),
 	loop_alive_(true),
 	event_(this),
 	timer_(this)
@@ -16,10 +15,10 @@ namespace trantor
 	TrantorLoop::~TrantorLoop()
 	{
 		loop_alive_ = false;
-		loop_thread_.join();
+		//loop_thread_.join();
 	}
 
-	void TrantorLoop::loopThread()
+	void TrantorLoop::loop()
 	{
 		loop_thread_id_ = std::this_thread::get_id();
 		registerPipeInLoop(event_.getEventPipe());
@@ -91,7 +90,7 @@ namespace trantor
 		}
 		if(!isInLoopThread() || need_wakeup_)
 		{
-			//LOG_DEBUG<<"wake up loop";
+			//log_debug<<"wake up loop";
 			wakeup();
 		}
 	}
@@ -101,16 +100,43 @@ namespace trantor
 		event_.trigEvent();
 	}
 
+	void TrantorLoop::updatePipe(shared_ptr<TrantorPipe> pipe_ptr)
+	{
+		//log_debug<<"register pipe";
+		std::function<void()> func = std::bind(&TrantorLoop::updatePipeInLoop, this, pipe_ptr);
+		runInLoop(func);
+	}
+
+	void TrantorLoop::updatePipeInLoop(shared_ptr<TrantorPipe> pipe_ptr)
+	{
+		//log_debug<<"register pipe in loop "<<pipe_ptr->getFd()<<" "<<pipe_ptr->getEvent();
+		if(pipe_ptr)
+		{
+			if(pipe_map_.find(pipe_ptr->getFd()) != pipe_map_.end())
+			{
+				epoll_.updateFd(pipe_ptr->getFd(), pipe_ptr->getEvent());
+			}
+			else
+			{
+				log_warn<<"pipe has not been registered";
+			}
+		}
+		else
+		{
+			log_error<<"pointer null";
+		}
+	}
+
 	void TrantorLoop::registerPipe(shared_ptr<TrantorPipe> pipe_ptr)
 	{
-		//LOG_DEBUG<<"register pipe";
+		//log_debug<<"register pipe";
 		std::function<void()> func = std::bind(&TrantorLoop::registerPipeInLoop, this, pipe_ptr);
 		runInLoop(func);
 	}
 
 	void TrantorLoop::registerPipeInLoop(shared_ptr<TrantorPipe> pipe_ptr)
 	{
-		//LOG_DEBUG<<"register pipe in loop "<<pipe_ptr->getFd()<<" "<<pipe_ptr->getEvent();
+		//log_debug<<"register pipe in loop "<<pipe_ptr->getFd()<<" "<<pipe_ptr->getEvent();
 		if(pipe_ptr)
 		{
 			pipe_map_[pipe_ptr->getFd()] = pipe_ptr;
@@ -118,7 +144,7 @@ namespace trantor
 		}
 		else
 		{
-			//LOG_ERROR<<"pointer null";
+			log_error<<"pointer null";
 		}
 	}
 

@@ -59,6 +59,16 @@ namespace trantor
 		register_event_ |= TReadEvent;
 	}
 
+	void TrantorPipe::disableWrite()
+	{
+		register_event_ &= (~TWriteEvent);
+	}
+
+	void TrantorPipe::disableRead()
+	{
+		register_event_ &= (~TReadEvent);
+	}
+
 	void TrantorPipe::enableWrite()
 	{
 		register_event_ |= TWriteEvent;
