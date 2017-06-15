@@ -24,6 +24,7 @@ public:
 	void runInLoop(std::function<void()> func);
 	void registerFd(FdPtr fdptr);
 	void deleteFd(FdPtr fdptr);
+	void wakeup();
 
 private:
 	FdPoll poll_;
@@ -38,7 +39,7 @@ private:
 	void runFuncs();
 	int createEventfd();
 	void queueInLoop(std::function<void()> func);
-	void wakeup();
+	
 };
 
 #endif

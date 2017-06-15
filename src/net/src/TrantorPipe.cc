@@ -1,4 +1,5 @@
 #include "TrantorPipe.h"
+#include "FdLog.h"
 
 namespace trantor
 {
@@ -22,11 +23,12 @@ namespace trantor
 	{
 		if(read_cb_)
 		{
+			log_debug<<"run read cb "<<fd_;
 			read_cb_();
 		}
 		else
 		{
-			//LOG_WARN<<"undefine read cb";
+			log_warn<<"undefine read cb";
 		}
 	}
 
@@ -34,11 +36,12 @@ namespace trantor
 	{
 		if(write_cb_)
 		{
+			log_debug<<"run write cb "<<fd_;
 			write_cb_();
 		}
 		else
 		{
-			//LOG_WARN<<"undefine write cb";
+			log_warn<<"undefine write cb";
 		}
 	}
 

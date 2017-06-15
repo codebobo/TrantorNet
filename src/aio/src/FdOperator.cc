@@ -1,8 +1,8 @@
 #include <sys/poll.h>
 #include "FdOperator.h"
 #include "FdLoop.h"
-//#include "TrantorConfig.h"
 #include "FdOperatorManager.h"
+#include <iostream>
 
 const int FdOperator::kNoneEvent = 0;
 const int FdOperator::kReadEvent = POLLIN | POLLPRI;
@@ -17,7 +17,6 @@ file_write_end_(false),
 registered_to_poll_(false),
 file_read_length_(0),
 file_read_finish_cb_(NULL),
-file_write_finish_cb_(NULL),
 fd_(-1)
 {
 }
@@ -137,25 +136,28 @@ void FdOperator::readFd (uint64_t length, std::function<void(std::string&, bool)
 
 void FdOperator::writeFd (const std::string& data, std::function<void(bool)> fileWriteFinishCb)
 {
-	//LOG_DEBUG<<"write fd";
 	std::function<void()> func = [=]()
 	 {
 		 if(this)
 		 {
+		 	 //std::cout<<"begin to write to buffer"<<std::endl;
 			 if(this->output_buffer_.getReadableBytes() < BUFFER_HIGH_WATER_LEVEL_THRESHOLD)
 			 {
-				 //this->outputBuffer_.ensureWritableBytes(data.length());
+				 //std::cout<<"lower than threshold"<<std::endl;
 				 this->output_buffer_.writeBuffer(data);
 				 if(fileWriteFinishCb)
 				 {
 					 fileWriteFinishCb(true);
 				 }
 			 }
+			 /*
 			 else
 			 {
+			 	std::cout<<"higher than threshold"<<std::endl;
 				 this->file_write_data_ = data;
 				 this->file_write_finish_cb_ = fileWriteFinishCb;
 			 }
+			 */
 
 			 if(this->output_buffer_.getReadableBytes() > 0)
 			 {
@@ -291,23 +293,26 @@ void FdOperator::handleRead()
 
 void FdOperator::handleWrite()
 {
-	uint64_t n = write(fd_, output_buffer_.getReadAddr(), output_buffer_.getReadableBytes());
-	//LOG_DEBUG<<"write bytes: "<<n<<" "<<output_buffer_.getReadableBytes();
-	if(n > 0)
-	{
-		//outputBuffer_.retrieve(n);
-		output_buffer_.retrieve(n);
-		FdOperatorManager::instance().trigReadEvent(file_path_);
-	}
-	if(file_write_finish_cb_ && (output_buffer_.writeBuffer(file_write_data_) == 0))
-	{
-		//outputBuffer_.ensureWritableBytes(fileWriteData_.length());
-		//outputBuffer_.append(fileWriteData_.c_str(), fileWriteData_.length());
-		//output_buffer_.writeBuffer(file_write_data_);
-		file_write_data_.resize(0);
-		file_write_finish_cb_(true);
+ 	//std::cout<<"write to fd: "<<fd_<<" size: "<<output_buffer_.getReadableBytes()<<std::endl;
+ 	uint64_t n = write(fd_, output_buffer_.getReadAddr(), output_buffer_.getReadableBytes());
+ 	//LOG_DEBUG<<"write bytes: "<<n<<" "<<output_buffer_.getReadableBytes();
+ 	if(n > 0)
+ 	{
+ 		//outputBuffer_.retrieve(n);
+ 		output_buffer_.retrieve(n);
+ 		FdOperatorManager::instance().trigReadEvent(file_path_);
+ 	}
+	/*
+ 	if(file_write_finish_cb_ && (output_buffer_.writeBuffer(file_write_data_) == 0))
+ 	{
+ 		//outputBuffer_.ensureWritableBytes(fileWriteData_.length());
+ 		//outputBuffer_.append(fileWriteData_.c_str(), fileWriteData_.length());
+ 		//output_buffer_.writeBuffer(file_write_data_);
+ 		file_write_data_.resize(0);
+ 		file_write_finish_cb_(true);
 		file_write_finish_cb_ = NULL;
 	}
+	*/
 	if(output_buffer_.getReadableBytes() == 0)
 	{
 		disableWriting();
@@ -317,6 +322,40 @@ void FdOperator::handleWrite()
 		}
 	}
 }
+
+void FdOperator::enableReading() 
+{ 
+	events_ |= kReadEvent;
+	if(registered_to_poll_)
+	{
+		loop_->wakeup();
+	}
+}
+void FdOperator::disableReading() 
+{ 
+	events_ &= ~kReadEvent; 
+	if(registered_to_poll_)
+	{
+		loop_->wakeup();
+	}
+}
+void FdOperator::enableWriting() 
+{ 
+	events_ |= kWriteEvent; 
+	if(registered_to_poll_)
+	{
+		loop_->wakeup();
+	}
+}
+void FdOperator::disableWriting() 
+{ 
+	events_ &= ~kWriteEvent; 
+	if(registered_to_poll_)
+	{
+		loop_->wakeup();
+	}
+}
+
 
 
 

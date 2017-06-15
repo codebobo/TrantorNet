@@ -27,5 +27,5 @@ add_executable (nettest ${DIR_SRC})
 add_executable (logtest ${LOG_DIR_SRC})
 
 target_link_libraries(nettest trantor pthread libuuid.so)
-target_link_libraries(logtest pthread logplus)
+target_link_libraries(logtest logplus pthread)
 

@@ -1,4 +1,5 @@
 #include <sys/eventfd.h>
+#include <iostream>
 #include "FdPoll.h"
 
 FdPoll::FdPoll() 
@@ -31,6 +32,7 @@ void FdPoll::startPoll(uint64_t timeoutMs)
 
 void FdPoll::handleEvents()
 {
+	//std::cout<<"fd loop handle events"<<std::endl;
 	for(auto iter = events_.begin(); iter != events_.end(); ++iter)
 	{
 		if(iter->fd == wakeup_fd_ && iter->revents)
@@ -56,12 +58,12 @@ void FdPoll::handleEvents()
 
 void FdPoll::wakeup()
 {
+	//std::cout<<"wake up"<<wakeup_fd_<<std::endl;
     uint64_t one = 1;
     uint64_t n = write(wakeup_fd_, &one, sizeof one);
     if (n != sizeof one)
     {
-		//LOG_DEBUG<<"wakeup fd: "<<wakeup_fd_;
-        //LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
+		//std::cout<<"wakeup fd: "<<wakeup_fd_<<std::endl;
 		perror("wakeup log: ");
     }
 }
@@ -83,6 +85,7 @@ void FdPoll::initEvents()
 			newfd.events = (iter->second)->getEvents();
 			newfd.revents = 0;
 			newfd.fd = (iter->second)->getFd();
+			//std::cout<<"initevents: "<<newfd.fd<<std::endl;
 			events_.push_back(newfd);
 		}
 	}
@@ -106,7 +109,7 @@ void FdPoll::registerFdInLoop(FdPtr fdptr)
 		uint64_t fd = fdptr->getFd();
 		if(fd >= 0)
 		{
-			//LOG_DEBUG<<"register fd: "<<fd;
+			//std::cout<<"register fd: "<<fd<<std::endl;
 			fd_map_[fd] = fdptr;
 		}
 	}

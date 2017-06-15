@@ -60,12 +60,12 @@ private:
 	std::shared_ptr<FdLoop> loop_;
 	FDMODE fd_mode_;
 	std::function<void(std::string&, bool)> file_read_finish_cb_;
-	std::function<void(bool)> file_write_finish_cb_;
+	//std::function<void(bool)> file_write_finish_cb_;
 	bool file_read_eof_;
 	bool file_write_end_;
 	std::atomic<bool> registered_to_poll_;
 	std::string file_path_;
-	std::string file_write_data_;
+	//std::string file_write_data_;
 	uint64_t file_read_length_;
 
 	static const int kNoneEvent;
@@ -73,10 +73,11 @@ private:
     static const int kWriteEvent;
 
 	void clearFd();
-	void enableReading() { events_ |= kReadEvent; }
-	void disableReading() { events_ &= ~kReadEvent; }
-	void enableWriting() { events_ |= kWriteEvent; }
-	void disableWriting() { events_ &= ~kWriteEvent; }
+	void enableReading();
+	void disableReading(); 
+	void enableWriting(); 
+	void disableWriting();
+
 	void handleRead();
 	void handleWrite();
 };

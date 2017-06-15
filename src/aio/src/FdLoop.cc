@@ -1,4 +1,5 @@
 #include "FdLoop.h"
+#include <iostream>
 
 FdLoop::FdLoop(uint64_t timeoutMs, uint64_t maxFdNum)
 :poll_(),
@@ -18,6 +19,7 @@ FdLoop::~FdLoop()
 
 void FdLoop::threadFunc(uint64_t timeoutMs)
 {
+	//std::cout<<"start fd loop"<<std::endl;
 	loop_thread_id_ = std::this_thread::get_id();
 	while(loop_alive_) 
 	{

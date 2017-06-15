@@ -31,6 +31,7 @@ TcpConnection::~TcpConnection()
 
 void TcpConnection::write(const char* addr, const long len)
 {
+	log_debug<<"send msg: "<<addr<<" "<<len;
 	write_buffer_ptr_->writeBuffer(addr,len);
 	trantor_pipe_ptr_->enableWrite();
 	loop_ptr_->updatePipe(trantor_pipe_ptr_);
@@ -86,6 +87,7 @@ void TcpConnection::shutdownWrite()
 
 void TcpConnection::shutdownWriteInLoop()
 {
+	log_debug<<"shutdown in loop!";
 	if(write_buffer_ptr_->getReadableBytes() > 0)
 	{
 		shutdown_write_callback_ = [=]()
@@ -106,6 +108,7 @@ void TcpConnection::forceClose()
 
 void TcpConnection::forceCloseInLoop()
 {
+	log_debug<<"forceclose in loop!";
 	if(write_buffer_ptr_->getReadableBytes() > 0)
 	{
 		shutdown_write_callback_ = [=]()

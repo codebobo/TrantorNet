@@ -38,6 +38,10 @@ class TcpConnection: public std::enable_shared_from_this<TcpConnection>
 		{
 			trantor_pipe_ptr_->enableRead();
 		}
+		void enableWrite()
+		{
+			trantor_pipe_ptr_->enableWrite();
+		}
 		void setReadCallback(std::function<void(std::shared_ptr<TcpConnection>, const TrantorTimestamp)> cb)
 		{
 			readCallback_ = cb;

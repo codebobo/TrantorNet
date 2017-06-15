@@ -20,15 +20,16 @@ int main()
 	//setAsyncLogFileBasename("trantornet");
 	//setAsyncLogPath("/app/boboWorkdir/trantornet/TrantorNet/");
 	setAsyncLogLevel(DEBUG);
-	std::thread thread1(test);
-	std::thread thread2(test);
-	std::thread thread3(test);
-	std::thread thread4(test);
-	std::thread thread5(test);
-	thread1.join();
-	thread2.join();
-	thread3.join();
-	thread4.join();
-	thread5.join();
+	//std::thread thread1(test);
+	//std::thread thread2(test);
+	//std::thread thread3(test);
+	//std::thread thread4(test);
+	//std::thread thread5(test);
+	test();
+	//thread1.join();
+	//thread2.join();
+	//thread3.join();
+	//thread4.join();
+	//thread5.join();
 	//sleep(5);
 }

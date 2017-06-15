@@ -72,7 +72,11 @@ int SocketOperator::read(const int fd, std::shared_ptr<StringBuffer>& buffer)
 	char extrabuf[65536];
 	int length = 65536;
 	length = ::read(fd, extrabuf, 65536);
-	buffer->writeBuffer(extrabuf,length);
+	if(length > 0)
+	{
+		log_debug<<"socket read length: "<<length ;
+		buffer->writeBuffer(extrabuf,length);
+	}
 	return length;
 }
 

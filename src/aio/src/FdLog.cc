@@ -1,4 +1,5 @@
 #include "FdLog.h"
+#include <iostream>
 
 namespace trantor
 {
@@ -40,6 +41,7 @@ void FdLog::init()
 		{
 			if(async_log_file_dir == "")
 			{
+				//std::cout<<"set log fd to std out fd"<<std::endl;
 				FdLog::fd_operator_ptr_->setFd(STDOUT_FILENO);
 			}
 			else
@@ -67,6 +69,7 @@ void FdLog::log()
 		if(async_log_file_dir == "")
 		{
 			//std output
+			//std::cout<<"log to std out: "<<log_content_<<std::endl;
 			fd_operator_ptr_->writeFd(log_content_);
 		}
 		else

@@ -1,5 +1,6 @@
 #include <string.h>
 #include "StringBuffer.h"
+#include "FdLog.h"
 
 namespace trantor
 {
@@ -30,28 +31,28 @@ void StringBuffer::adjustBuffer()
 	write_index_ = len;
 }
 
+// do not use aio in this func, may lead to deadlock
 int StringBuffer::writeBuffer(const char* addr, const size_t size)
 {
-	//LOG4CPLUS_DEBUG(_logger, "write buffer "<<getBackwardWritableBytes()<<" "<<getForwardWritableBytes()<<" "<<buffer_.capacity());
+	//std::cout<<"write buffer0 "<<getBackwardWritableBytes()<<" "<<getForwardWritableBytes()<<" "<<buffer_.capacity()<<std::endl;
 	if(getBackwardWritableBytes() >= size)
 	{
-		//LOG4CPLUS_DEBUG(_logger, "write buffer "<<addr);
+		//std::cout<<"write buffer1 "<<" "<<size<<addr;
 		memcpy(const_cast<char*>(end()), addr, size);
 	}
 	else if(getBackwardWritableBytes() + getForwardWritableBytes() >= size)
 	{
-		//LOG4CPLUS_DEBUG(_logger, "write buffer "<<addr);
+		//std::cout<<"write buffer2 "<<addr<<" "<<size<<std::endl;
 		adjustBuffer();
 		memcpy(const_cast<char*>(end()), addr, size);
 	}
 	else
 	{
-		//LOG4CPLUS_DEBUG(_logger, "write buffer "<<addr);
+		//std::cout<<"write buffer3 "<<addr<<" "<<size<<endl;
 		resizeBuffer((buffer_.capacity() + size - getBackwardWritableBytes()) * 2);
 		memcpy(const_cast<char*>(end()), addr, size);
 	}
 	write_index_ += size;
-	//LOG4CPLUS_DEBUG(_logger, "write buffer "<<write_index_);
 }
 size_t StringBuffer::readBuffer(const char* addr, const size_t size)
 {

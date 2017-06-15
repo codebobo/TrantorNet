@@ -67,7 +67,7 @@ void TcpServer::newConnectionCallback(std::shared_ptr<TcpConnection>& tcp_connec
 {
 	if(tcp_connection_ptr)
 	{
-		log_info<<"accept new tcp connection in main loop";
+		log_info<<"accept new tcp connection in main loop "<<tcp_connection_ptr->getFd();
 		if(newConnectionCallback_)
 		{
 			newConnectionCallback_(tcp_connection_ptr);
@@ -76,6 +76,7 @@ void TcpServer::newConnectionCallback(std::shared_ptr<TcpConnection>& tcp_connec
 		tcp_connection_ptr->setReadCallback(std::bind(&TcpServer::newMessageCallback, this, std::placeholders::_1, std::placeholders::_2));
 		tcp_connection_ptr->setClosedCallback(std::bind(&TcpServer::closeCallback, this, std::placeholders::_1));
 		tcp_connection_ptr->enableRead();
+		tcp_connection_ptr->enableWrite();
 		tcp_connection_map_[tcp_connection_ptr->getConnId()] = tcp_connection_ptr;
 
 		tcp_connection_ptr->registerIntoLoop();
@@ -96,7 +97,7 @@ void TcpServer::newMessageCallback(std::shared_ptr<TcpConnection> tcp_connection
 
 void TcpServer::closeCallback(std::shared_ptr<TcpConnection> tcp_connection_ptr)
 {
-	log_debug<<"erase connection: "<<tcp_connection_ptr->getConnId();
+	//log_debug<<"erase connection: "<<tcp_connection_ptr->getConnId();
 	main_loop_ptr_->runInLoop(std::bind(&TcpServer::closeCallbackInMainLoop, this, tcp_connection_ptr));
 }
 
