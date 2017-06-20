@@ -5,8 +5,8 @@
 #include <sys/poll.h>
 
 #define TNoneEvent  0
-#define TReadEvent  POLLIN | POLLPRI
-#define TWriteEvent  POLLOUT
+#define TReadEvent  (POLLIN | POLLPRI | POLLRDBAND | POLLRDNORM)
+#define TWriteEvent  (POLLOUT | POLLWRNORM | POLLWRBAND)
 
 using namespace std;
 

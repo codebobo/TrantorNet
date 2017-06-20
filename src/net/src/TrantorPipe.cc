@@ -47,8 +47,10 @@ namespace trantor
 
 	void TrantorPipe::handleEvent(uint32_t revent)
 	{
+		//log_debug<<"TReadEvent: "<<(TReadEvent)<<" TWriteEvent: "<<TWriteEvent<<" revent: "<<revent;
 		if(revent & TReadEvent)
 		{
+			//log_debug<<"handleread";
 			handleRead();
 		}
 		if(revent & TWriteEvent)

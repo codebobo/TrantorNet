@@ -41,7 +41,7 @@ void TrantorEPoll::updateFd(uint32_t fd, uint32_t events)
 	epoll_event event_st;
 	event_st.data.fd = fd;
 	event_st.events = events;
-	//epoll_ctl(epfd_, EPOLL_CTL_MOD, fd, &event_st);
+	epoll_ctl(epfd_, EPOLL_CTL_MOD, fd, &event_st);
 }
 
 

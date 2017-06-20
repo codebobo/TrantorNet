@@ -40,7 +40,7 @@ namespace trantor
 			{
 				if(pipe_map_.find(iter->first) != pipe_map_.end())
 				{
-					//LOG_DEBUG<<"event fd: "<<iter->first;
+					//log_debug<<"event fd: "<<iter->first<<" "<<iter->second;
 					pipe_map_[iter->first]->handleEvent(iter->second);
 				}
 			}

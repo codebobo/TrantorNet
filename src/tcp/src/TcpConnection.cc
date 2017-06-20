@@ -23,7 +23,7 @@ TcpConnection::~TcpConnection()
 {
 	if(fd_ > 0)
 	{
-		log_info<<"close fd";
+		log_info<<"close fd: "<<fd_;
 		socket_operator_.close(fd_);
 	}
 }

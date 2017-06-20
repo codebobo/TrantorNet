@@ -8,6 +8,7 @@ int main()
 	{
 		tcp_server.setNewMessageCallback([](std :: shared_ptr < TcpConnection > conn_ptr, const TrantorTimestamp timestamp)
 											{
+												log_debug<<"new message received: "<<conn_ptr->getReadBufferPtr()->retrieveAllAsString();
 												conn_ptr->write("Hello! Welcome to tcp server!");
 											}
 										);
